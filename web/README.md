@@ -1,6 +1,6 @@
 # Vigil AI — research landing page
 
-An English-language research summary covering the study, methodology, evaluation instruments, corrected findings, and limitations. The Python package and CLI remain `vigilai`.
+A bilingual research summary in English and Brazilian Portuguese covering the study, methodology, evaluation instruments, corrected findings, and limitations. The Python package and CLI remain `vigilai`.
 
 ## Run locally
 
@@ -31,6 +31,18 @@ PLAYWRIGHT_PORT=3001 pnpm exec playwright test
 The film tests play the MP4s in `public/media/`. These deliverables are included; regeneration instructions are in [video/README.md](video/README.md).
 
 ## Architecture
+
+### Languages
+
+- `/` serves Brazilian Portuguese by default; `/en` serves English. An internal rewrite reuses the statically generated Portuguese page, and legacy `/pt-br` links permanently redirect to `/`.
+- Both versions are statically rendered, with the correct document language, localized titles/descriptions and language-alternate metadata. Preview `noindex` settings are unchanged.
+- The header language links preserve the current section and query parameters during normal navigation. Direct links work without JavaScript; the selected language persists in the URL on reload.
+- Translation data lives in `src/lib/locales/pt-br.ts`, with locale helpers in `src/lib/i18n.ts`. Keep English documentation and source identifiers unchanged.
+- The benchmark question-language toggle is independent of the site language. Source quotations, model names, article numbers, numerical results and evidence links are preserved.
+- The Portuguese page includes translated player controls, chapter navigation and the complete HTML transcript. The existing video and poster still contain English on-screen text, explicitly noted in the Portuguese interface. No translated video has been rendered.
+- `tests/i18n.spec.ts` checks translation coverage, numerical parity, server rendering without JavaScript, language navigation, mobile layout and Portuguese playback controls.
+
+### Application
 
 - Next.js App Router, TypeScript, and Tailwind CSS.
 - A button built with the shadcn/ui composition pattern (Radix Slot + CVA), styled for this identity. `components.json` supports adding components from the official registry.

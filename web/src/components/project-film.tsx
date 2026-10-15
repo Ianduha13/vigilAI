@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { Maximize2, Pause, Play, RotateCcw, Volume2, VolumeX, X } from "lucide-react";
 import { formatTimestamp, overviewChapters, overviewFilm } from "@/lib/project-overview";
+import { getTranslator, type Locale } from "@/lib/i18n";
 
 const duration = overviewFilm.durationSeconds;
 const SKIP = 5;
@@ -12,7 +13,8 @@ function chapterAt(seconds: number) {
 }
 
 /** Poster-first player for the project-overview film. Nothing loads or plays until the visitor asks. */
-export function ProjectFilm() {
+export function ProjectFilm({ locale = "en" }: { locale?: Locale }) {
+  const t = getTranslator(locale);
   const video = useRef<HTMLVideoElement>(null);
   const player = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -149,25 +151,27 @@ export function ProjectFilm() {
   return <>
     <div id="overview" className="hero-film">
       <button ref={trigger} type="button" className="hero-film-preview" onClick={openFilm}
-        aria-label="Play the overview" aria-haspopup="dialog" aria-controls="film-dialog">
+        aria-label={t("Play the overview")} aria-haspopup="dialog" aria-controls="film-dialog">
         {/* Local poster: no video download or audio before the visitor presses play. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={overviewFilm.media.poster} width={1920} height={1080} alt="" fetchPriority="high"/>
         <span className="hero-film-play"><Play size={22} fill="currentColor" aria-hidden="true"/></span>
-        <span className="hero-film-caption"><strong>Watch the research film</strong><span>{formatTimestamp(duration)} <span aria-hidden="true">↗</span></span></span>
+        <span className="hero-film-caption"><strong>{t("Watch the research film")}</strong><span>{formatTimestamp(duration)} <span aria-hidden="true">↗</span></span></span>
       </button>
-      <div className="hero-film-note"><span>THE QUESTION. THE EVIDENCE. THE LIMITS.</span><a href="#film-transcript">Read transcript ↗</a></div>
+      {locale === "pt-br" && <p className="film-language-note">{t("Video in English · Portuguese transcript below.")}</p>}
+      <div className="hero-film-note"><span>{t("THE QUESTION. THE EVIDENCE. THE LIMITS.")}</span><a href="#film-transcript">{t("Read transcript ↗")}</a></div>
     </div>
     <dialog id="film-dialog" className="film-dialog" ref={player} aria-labelledby="film-dialog-title"
       onKeyDown={onKeyDown} onCancel={closeFilm}
       onClose={() => { video.current?.pause(); setOpened(false); trigger.current?.focus({ preventScroll: true }); }}>
-      <header className="film-dialog-header"><div><span className="eyebrow">PROJECT OVERVIEW / {formatTimestamp(duration)}</span><h2 id="film-dialog-title">The research film</h2></div>
-        <button autoFocus type="button" className="film-close" onClick={closeFilm} aria-label="Close film"><span>Close</span><X size={21}/></button>
+      <header className="film-dialog-header"><div><span className="eyebrow">{t("PROJECT OVERVIEW /")}{" "}{formatTimestamp(duration)}</span><h2 id="film-dialog-title">{t("The research film")}</h2></div>
+        <button autoFocus type="button" className="film-close" onClick={closeFilm} aria-label={t("Close film")}><span>{t("Close")}</span><X size={21}/></button>
       </header>
+      {locale === "pt-br" && <p className="film-language-note">{t("Video in English · Portuguese transcript below.")}</p>}
       <div className="film-dialog-content"><div className="film-layout">
     <div className={`film-player ${attached ? "is-attached" : ""}`}>
       <div className="film-frame">
-        <video ref={video} poster={overviewFilm.media.poster} preload="none" playsInline aria-label="Project overview film"
+        <video lang="en" ref={video} poster={overviewFilm.media.poster} preload="none" playsInline aria-label={t("Project overview film")}
           aria-describedby="film-keyboard-hint" onClick={toggle}
           onPlay={() => { setPlaying(true); setEnded(false); }} onPause={() => setPlaying(false)}
           onEnded={() => { setPlaying(false); setEnded(true); }}
@@ -175,50 +179,46 @@ export function ProjectFilm() {
           onVolumeChange={event => { setMuted(event.currentTarget.muted); setVolume(event.currentTarget.volume); }}
           onLoadedMetadata={event => {
             if (pendingSeek.current !== null) { event.currentTarget.currentTime = pendingSeek.current; pendingSeek.current = null; }
-          }}>
-          Your browser cannot play this video. The transcript below contains the complete narrative.
-        </video>
+          }}>{t("Your browser cannot play this video. The transcript below contains the complete narrative.")}</video>
         {ended && <div className="film-ended">
-          <button type="button" onClick={() => void play(0)}><RotateCcw size={17} aria-hidden="true"/>Replay the overview</button>
+          <button type="button" onClick={() => void play(0)}><RotateCcw size={17} aria-hidden="true"/>{t("Replay the overview")}</button>
         </div>}
       </div>
-      <div className="film-controls" role="group" aria-label="Film controls">
-        <button type="button" className="film-button" onClick={toggle} aria-label={playing ? "Pause" : "Play"}>
+      <div className="film-controls" role="group" aria-label={t("Film controls")}>
+        <button type="button" className="film-button" onClick={toggle} aria-label={playing ? t("Pause") : t("Play")}>
           {playing ? <Pause size={18} aria-hidden="true"/> : <Play size={18} aria-hidden="true"/>}
         </button>
-        <button type="button" className="film-button" onClick={() => void play(0)} aria-label="Replay from the beginning">
+        <button type="button" className="film-button" onClick={() => void play(0)} aria-label={t("Replay from the beginning")}>
           <RotateCcw size={17} aria-hidden="true"/>
         </button>
         <span className="film-time"><span>{formatTimestamp(time)}</span> / {formatTimestamp(duration)}</span>
         <div className="film-seek">
-          <input type="range" min={0} max={duration} step={1} value={Math.floor(time)} aria-label="Seek"
-            aria-valuetext={`${formatTimestamp(time)} of ${formatTimestamp(duration)}, chapter ${chapter.number}: ${chapter.title}`}
+          <input type="range" min={0} max={duration} step={1} value={Math.floor(time)} aria-label={t("Seek")}
+            aria-valuetext={`${formatTimestamp(time)} ${t("of")} ${formatTimestamp(duration)}, ${t("chapter")} ${chapter.number}: ${t(chapter.title)}`}
             onChange={event => seek(Number(event.target.value))}
             style={{ "--film-progress": `${(time / duration) * 100}%` } as CSSProperties}/>
           <span className="film-ticks" aria-hidden="true">{overviewChapters.slice(1).map(item => <span key={item.id} style={{ left: `${(item.start / duration) * 100}%` }}/>)}</span>
         </div>
-        <button type="button" className="film-button" onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"} aria-pressed={muted}>
+        <button type="button" className="film-button" onClick={toggleMute} aria-label={muted ? t("Unmute") : t("Mute")} aria-pressed={muted}>
           {muted || volume === 0 ? <VolumeX size={18} aria-hidden="true"/> : <Volume2 size={18} aria-hidden="true"/>}
         </button>
-        <input type="range" className="film-volume" min={0} max={1} step={0.05} value={muted ? 0 : volume} aria-label="Volume"
+        <input type="range" className="film-volume" min={0} max={1} step={0.05} value={muted ? 0 : volume} aria-label={t("Volume")}
           aria-valuetext={`${Math.round((muted ? 0 : volume) * 100)}%`} onChange={event => changeVolume(Number(event.target.value))}/>
-        <button type="button" className="film-button film-fullscreen" onClick={() => void fullscreen()} aria-label="Full screen">
+        <button type="button" className="film-button film-fullscreen" onClick={() => void fullscreen()} aria-label={t("Full screen")}>
           <Maximize2 size={16} aria-hidden="true"/>
         </button>
       </div>
-      <p id="film-keyboard-hint" className="film-hint">
-        Keyboard: Space or K plays and pauses, ← and → move 5 seconds, M mutes, F toggles full screen, Esc closes the viewer. Sound starts only when you press play.
-        {reducedMotion && " Reduced motion is on: the film contains animated transitions, and the transcript below is open with the complete narrative."}
+      <p id="film-keyboard-hint" className="film-hint">{t("Keyboard: Space or K plays and pauses, ← and → move 5 seconds, M mutes, F toggles full screen, Esc closes the viewer. Sound starts only when you press play.")}{reducedMotion && <>{" "}{t("Reduced motion is on: the film contains animated transitions, and the transcript below is open with the complete narrative.")}</>}
       </p>
     </div>
-    <nav className="film-chapters" aria-label="Film chapters">
-      <span className="eyebrow film-chapters-label">EXPLORE THE CHAPTERS</span>
+    <nav className="film-chapters" aria-label={t("Film chapters")}>
+      <span className="eyebrow film-chapters-label">{t("EXPLORE THE CHAPTERS")}</span>
       <ol>
         {overviewChapters.map((item, index) => <li key={item.id}>
           <button type="button" onClick={() => void play(item.start)} aria-current={attached && index === active ? "true" : undefined}
-            aria-label={`Play chapter ${item.number}, ${item.title}, from ${formatTimestamp(item.start)}`}>
+            aria-label={`${t("Play chapter")} ${item.number}, ${t(item.title)}, ${t("from")} ${formatTimestamp(item.start)}`}>
             <span className="film-chapter-number">{item.number}</span>
-            <span className="film-chapter-title">{item.title}</span>
+            <span className="film-chapter-title">{t(item.title)}</span>
             <span className="film-chapter-time">{formatTimestamp(item.start)}</span>
           </button>
         </li>)}

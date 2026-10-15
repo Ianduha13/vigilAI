@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("explores all benchmarks and changes language with accessible controls", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
-  await page.goto("/");
+  await page.goto("/en");
   await expect(page).toHaveTitle(/Vigil AI/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Evaluating AI");
   await page.getByRole("link", { name: "Explore the benchmarks" }).click();
@@ -27,7 +27,7 @@ test("explores all benchmarks and changes language with accessible controls", as
 
 test("desktop scrolling changes the story chapters", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto("/");
+  await page.goto("/en");
   await page.screenshot({ path: testInfo.outputPath("desktop-hero.png") });
   const story = page.locator("#story");
   const bounds = await story.boundingBox();
@@ -41,7 +41,7 @@ test("desktop scrolling changes the story chapters", async ({ page }, testInfo) 
 
 test("mobile has no horizontal overflow and supports the complete story", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/en");
   await page.screenshot({ path: testInfo.outputPath("mobile-hero.png") });
   await page.screenshot({ path: testInfo.outputPath("mobile-full.png"), fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -58,7 +58,7 @@ test("reduced motion keeps the story compact and operable", async ({ page }) => 
   page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto("/");
+  await page.goto("/en");
   await expect(page.locator(".story-sticky")).toHaveCSS("position", "relative");
   await page.getByRole("button", { name: /Measurement validation/ }).click();
   await expect(page.getByRole("region", { name: "Measurement validation" })).toBeVisible();

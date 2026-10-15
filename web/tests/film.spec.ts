@@ -6,7 +6,7 @@ const currentTime = (video: Locator) => video.evaluate((element: HTMLVideoElemen
 test("the film is poster-first and never starts on its own", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
-  await page.goto("/");
+  await page.goto("/en");
   const section = page.locator("#overview");
   await expect(section.getByRole("button", { name: "Play the overview" })).toBeVisible();
   await expect(page.getByRole("dialog")).not.toBeVisible();
@@ -24,7 +24,7 @@ test("the film is poster-first and never starts on its own", async ({ page }) =>
 
 test("plays, pauses, navigates chapters, adjusts volume and replays", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto("/");
+  await page.goto("/en");
   const video = page.locator("video");
   await page.getByRole("button", { name: "Play the overview" }).click();
   await expect.poll(() => currentTime(video), { timeout: 15_000 }).toBeGreaterThan(0.5);
@@ -53,7 +53,7 @@ test("plays, pauses, navigates chapters, adjusts volume and replays", async ({ p
 
 test("the player is operable with the keyboard", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto("/");
+  await page.goto("/en");
   const video = page.locator("video");
   await page.getByRole("button", { name: "Play the overview" }).focus();
   await page.keyboard.press("Enter");
@@ -80,7 +80,7 @@ test("the player is operable with the keyboard", async ({ page }) => {
 });
 
 test("the transcript contains the complete narrative and figures", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/en");
   const transcript = page.locator("#film-transcript");
   await expect(transcript).not.toHaveAttribute("open", "");
   await transcript.locator("summary").click();
@@ -95,7 +95,7 @@ test("the transcript contains the complete narrative and figures", async ({ page
 
 test("reduced motion opens the transcript and still waits for the visitor", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
+  await page.goto("/en");
   await expect(page.locator("#film-transcript")).toHaveAttribute("open", "");
   await expect(page.locator("#film-keyboard-hint")).toContainText("Reduced motion is on");
   expect(await page.locator("video").evaluate((element: HTMLVideoElement) => element.currentSrc)).toBe("");
@@ -103,7 +103,7 @@ test("reduced motion opens the transcript and still waits for the visitor", asyn
 
 test("mobile shows a full-width inline player with the web rendition", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/en");
   await page.getByRole("button", { name: "Play the overview" }).click();
   const frame = page.locator(".film-frame");
   await frame.scrollIntoViewIfNeeded();
@@ -120,7 +120,7 @@ test("mobile shows a full-width inline player with the web rendition", async ({ 
 });
 
 test("hero opens a modal, contains focus, pauses on close and restores focus", async ({ page }, testInfo) => {
-  await page.goto("/");
+  await page.goto("/en");
   const trigger = page.getByRole("button", { name: "Play the overview" });
   await expect(page.locator(".hero").getByRole("button", { name: "Play the overview" })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("hero-film.png") });
